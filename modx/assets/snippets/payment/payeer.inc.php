@@ -34,8 +34,8 @@ switch ($_GET['m_status'])
 		
 		$amount = $modx->db->getValue($modx->db->select("price", $mod_table, "id = $m_orderid", "", ""));
 		
-		$m_amount = str_replace (',', '.', $amount); 
-
+		$m_amount = number_format($amount, 2, '.', '');
+			
 		$change_status = $modx->db->update(array('status' => 2), $mod_table, "id = $m_orderid");
 		
 		$modx->invokeEvent('OnSHKChangeStatus', array('order_id'=>$m_orderid, 'status' => 2));
