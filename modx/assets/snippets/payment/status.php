@@ -78,25 +78,36 @@ if (isset($_POST['m_operation_id']) && isset($_POST['m_sign']))
 	
 	if (!$err)
 	{
-		$modx = new DocumentParser;
-
-		switch ($_POST['m_status'])
-		{
-			case 'success':
-				$status = 6;
-				break;
+		// загрузка заказа
 				
-			default:
-				$message .= " - статус платежа не является success\n";
-				$status = 5;
-				$err = true;
-				break;
+		$modx = new DocumentParser;
+    $mod_table = $modx->db->config['table_prefix'] . "manager_shopkeeper";
+    $order_id = $_POST['m_orderid'];
+    $order = $modx->db->getRow($modx->db->select("id, short_txt, content, allowed, addit, price, currency, DATE_FORMAT(date,'%d.%m.%Y %k:%i') AS date, status, email, phone, payment, tracking_num, userid", $mod_table, "id = $order_id", "", ""));
+
+		if (!$order) 
+		{
+			$message .= " - заказ не существует\n";
+			$err = true;
 		}
-		
-		$mod_table = $modx->db->config['table_prefix'] . "manager_shopkeeper";
-		$m_orderid = $_POST['m_orderid'];
-		$change_status = $modx->db->update(array('status' => $status), $mod_table, "id = $m_orderid");
-		$modx->invokeEvent('OnSHKChangeStatus', array('order_id' => $m_orderid, 'status' => $status));
+		else 
+		{
+			switch ($_POST['m_status'])
+			{
+				case 'success':
+					$status = 6;
+					break;
+					
+				default:
+					$message .= " - статус платежа не является success\n";
+					$status = 5;
+					$err = true;
+					break;
+			}
+			
+			$change_status = $modx->db->update(array('status' => $status), $mod_table, "id = $order_id");
+			$modx->invokeEvent('OnSHKChangeStatus', array('order_id' => $order_id, 'status' => $status));
+		}
 	}
 	
 	if ($err)
